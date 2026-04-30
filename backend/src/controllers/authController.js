@@ -13,10 +13,10 @@ const generateToken = (user) => {
 
 // Signup Controller
 export const signup = async (req, res) => {
-  const { name, username, password, role } = req.body;
+  const { name, email, password, role } = req.body;
 
   try {
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -25,7 +25,7 @@ export const signup = async (req, res) => {
 
     const user = await User.create({
       name,
-      username,
+      email,
       password: hashedPassword,
       role: role || "Member",
     });
@@ -37,7 +37,7 @@ export const signup = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        username: user.username,
+        email: user.email,
         role: user.role,
       },
     });
@@ -48,10 +48,10 @@ export const signup = async (req, res) => {
 
 // Signin Controller
 export const signin = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -68,7 +68,7 @@ export const signin = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        username: user.username,
+        email: user.email,
         role: user.role,
       },
     });

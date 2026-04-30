@@ -9,8 +9,8 @@ import {
 
 const router = express.Router();
 
-// Only Admins can create projects
-router.post("/", protect, authorize(["Admin"]), createProject);
+// Both Admin and Member can create projects
+router.post("/", protect, authorize(["Admin", "Member"]), createProject);
 
 // Both Admin and Member can view projects
 router.get("/", protect, getProjects);

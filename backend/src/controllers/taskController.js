@@ -27,7 +27,7 @@ export const createTask = async (req, res) => {
 export const getTasks = async (req, res) => {
   try {
     const tasks = await Task.find({ project: req.params.projectId })
-      .populate("assignedTo", "name username")
+      .populate("assignedTo", "name email")
       .populate("project", "name");
     res.json(tasks);
   } catch (err) {
@@ -52,6 +52,26 @@ export const updateTaskStatus = async (req, res) => {
     await task.save();
 
     res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Delete a task
+export const deleteTask = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+
+    if (!task) return res.status(404).json({ message: "Task not found" });
+
+    // Only Admin can delete
+    if (req.user.role !== "Admin") {
+      return res.status(403).json({ message: "Only admins can delete tasks" });
+    }
+
+    await Task.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "Task deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

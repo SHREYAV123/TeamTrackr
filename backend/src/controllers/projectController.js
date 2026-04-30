@@ -19,7 +19,7 @@ export const createProject = async (req, res) => {
 // Get all projects for the logged-in user
 export const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ members: req.user.id }).populate("members", "name username role");
+    const projects = await Project.find({ members: req.user.id }).populate("members", "name email role");
     res.json(projects);
   } catch (err) {
     res.status(500).json({ message: err.message });
