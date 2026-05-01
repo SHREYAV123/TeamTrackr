@@ -68,6 +68,9 @@ export default function Navbar() {
               <span className="hidden sm:block text-sm text-gray-300">
                 {user.name}
               </span>
+              <span className="hidden sm:block text-sm text-gray-300">
+                {user.role}
+              </span>
 
               {/* Logout */}
               <button
