@@ -1,9 +1,11 @@
 import { useEffect, useState, useContext } from "react";
+import { useLocation } from "react-router-dom";
 import API from "../utils/api";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Tasks() {
   const { user } = useContext(AuthContext);
+  const location = useLocation();
   const isAdmin = user?.role === "Admin";
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -43,7 +45,10 @@ export default function Tasks() {
     try {
       const { data } = await API.get("/projects");
       setProjects(data);
-      if (data.length > 0) {
+      const incomingId = location.state?.projectId;
+      if (incomingId && data.find((p) => p._id === incomingId)) {
+        setSelectedProject(incomingId);
+      } else if (data.length > 0) {
         setSelectedProject(data[0]._id);
       }
     } catch (err) {
@@ -96,7 +101,8 @@ export default function Tasks() {
       setShowForm(false);
       alert("✅ Task created successfully!");
     } catch (err) {
-      alert("❌ Failed to create task: " + err.response?.data?.message);
+      const message = err.response?.data?.message || err.message || "Unknown error";
+      alert("❌ Failed to create task: " + message);
     } finally {
       setLoading(false);
     }
@@ -114,7 +120,8 @@ export default function Tasks() {
         setTasks(tasks.filter((t) => t._id !== taskId));
         alert("✅ Task deleted successfully!");
       } catch (err) {
-        alert("❌ Failed to delete task: " + err.response?.data?.message);
+        const message = err.response?.data?.message || err.message || "Unknown error";
+        alert("❌ Failed to delete task: " + message);
       }
     }
   };
@@ -241,14 +248,14 @@ export default function Tasks() {
               placeholder="Task Title"
               value={formData.title}
               onChange={handleInputChange}
-              className="w-full border-2 border-gray-200 focus:border-emerald-600 p-3 mb-4 rounded-lg focus:outline-none transition"
+              className="w-full border-2 border-gray-200 focus:border-emerald-600 p-3 mb-4 rounded-lg focus:outline-none transition text-black"
             />
             <textarea
               name="description"
               placeholder="Task Description"
               value={formData.description}
               onChange={handleInputChange}
-              className="w-full border-2 border-gray-200 focus:border-emerald-600 p-3 mb-4 rounded-lg focus:outline-none transition"
+              className="w-full border-2 border-gray-200 focus:border-emerald-600 p-3 mb-4 rounded-lg focus:outline-none transition text-black"
               rows="3"
             />
             <input
@@ -256,7 +263,7 @@ export default function Tasks() {
               name="dueDate"
               value={formData.dueDate}
               onChange={handleInputChange}
-              className="w-full border-2 border-gray-200 focus:border-emerald-600 p-3 mb-4 rounded-lg focus:outline-none transition"
+              className="w-full border-2 border-gray-200 focus:border-emerald-600 p-3 mb-4 rounded-lg focus:outline-none transition text-black"
             />
             <label className="block text-sm font-bold text-gray-900 mb-2">Assign to Member</label>
             <select

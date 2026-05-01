@@ -5,15 +5,25 @@ import User from "../models/User.js";
 // Create a task (Admin only)
 export const createTask = async (req, res) => {
   try {
+    console.log("[taskController] createTask called", {
+      user: req.user,
+      body: req.body,
+      authorization: req.headers.authorization,
+    });
+
     const { title, description, assignedTo, projectId, dueDate } = req.body;
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ message: "Project not found" });
+    if (project.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Only the project owner can add tasks to this project" });
+    }
 
     if (assignedTo) {
       const assignedUser = await User.findById(assignedTo);
       if (!assignedUser) return res.status(404).json({ message: "Assigned user not found" });
-      if (!project.members.includes(assignedTo)) {
+      const projectMemberIds = project.members.map((member) => member.toString());
+      if (!projectMemberIds.includes(assignedTo.toString())) {
         return res.status(400).json({ message: "Assigned user must be a member of the project" });
       }
     }
@@ -30,6 +40,7 @@ export const createTask = async (req, res) => {
 
     res.status(201).json(task);
   } catch (err) {
+    console.error("[taskController] createTask error", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -37,6 +48,20 @@ export const createTask = async (req, res) => {
 // Get tasks for a project
 export const getTasks = async (req, res) => {
   try {
+    const project = await Project.findById(req.params.projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    if (req.user.role === "Admin") {
+      if (project.createdBy.toString() !== req.user.id) {
+        return res.status(403).json({ message: "Admins can only view tasks for projects they created" });
+      }
+    } else {
+      const projectMemberIds = project.members.map((member) => member.toString());
+      if (!projectMemberIds.includes(req.user.id)) {
+        return res.status(403).json({ message: "Not authorized to view this project's tasks" });
+      }
+    }
+
     const query = { project: req.params.projectId };
     if (req.user.role !== "Admin") {
       query.assignedTo = req.user.id;
@@ -95,12 +120,21 @@ export const updateTaskStatus = async (req, res) => {
 // Delete a task
 export const deleteTask = async (req, res) => {
   try {
+    console.log("[taskController] deleteTask called", {
+      user: req.user,
+      taskId: req.params.id,
+      authorization: req.headers.authorization,
+    });
+
     const task = await Task.findById(req.params.id);
 
     if (!task) return res.status(404).json({ message: "Task not found" });
 
     // Only Admin can delete
     if (req.user.role !== "Admin") {
+      console.warn("[taskController] deleteTask denied", {
+        requestUser: req.user,
+      });
       return res.status(403).json({ message: "Only admins can delete tasks" });
     }
 
@@ -108,6 +142,7 @@ export const deleteTask = async (req, res) => {
 
     res.json({ message: "Task deleted successfully" });
   } catch (err) {
+    console.error("[taskController] deleteTask error", err);
     res.status(500).json({ message: err.message });
   }
 };

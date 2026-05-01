@@ -36,7 +36,7 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 px-4">
 
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
+      <div className="w-full max-w-md bg-gray-200 rounded-2xl shadow-2xl p-8">
 
         {/* Header */}
         <div className="text-center mb-6">
@@ -59,7 +59,7 @@ export default function Signup() {
             <input
               type="text"
               placeholder="Enter your name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-black"
               onChange={(e) => setName(e.target.value)}
             />
           </div>
@@ -72,7 +72,7 @@ export default function Signup() {
             <input
               type="email"
               placeholder="Enter your email"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-black"
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -85,7 +85,7 @@ export default function Signup() {
             <input
               type="password"
               placeholder="Enter your password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-black"
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
@@ -98,7 +98,7 @@ export default function Signup() {
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-gray-600"
             >
               <option value="Member">Member</option>
               <option value="Admin">Admin</option>

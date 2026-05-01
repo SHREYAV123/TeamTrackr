@@ -2,10 +2,16 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
+const normalizeRole = (role) => {
+  if (typeof role !== "string") return "Member";
+  const trimmed = role.trim();
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+};
+
 // Generate JWT
 const generateToken = (user) => {
   return jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user._id, role: normalizeRole(user.role) },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
@@ -21,13 +27,15 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const normalizedRole = typeof role === "string"
+      ? role.trim().charAt(0).toUpperCase() + role.trim().slice(1).toLowerCase()
+      : "Member";
 
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
-      role: role || "Member",
+      password,
+      role: normalizedRole || "Member",
     });
 
     const token = generateToken(user);
@@ -38,7 +46,7 @@ export const signup = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: normalizedRole,
       },
     });
   } catch (err) {
@@ -61,6 +69,7 @@ export const signin = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    const normalizedRole = normalizeRole(user.role);
     const token = generateToken(user);
 
     res.json({
@@ -69,7 +78,7 @@ export const signin = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: normalizedRole,
       },
     });
   } catch (err) {

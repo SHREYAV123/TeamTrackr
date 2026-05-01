@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import seedData from "./seed.js";
+import User from "./models/User.js";
 import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
@@ -10,15 +11,17 @@ import taskRoutes from "./routes/taskRoutes.js";
 dotenv.config();
 await connectDB();
 
-// Auto-seed database on server start (only in development)
-if (process.env.NODE_ENV !== "production") {
-  console.log("🌱 Seeding database...");
+const shouldSeed = process.env.NODE_ENV !== "production" || process.env.FORCE_SEED === "true";
+if (shouldSeed) {
+  console.log("🌱 Resetting and seeding database on startup...");
   try {
-    await seedData();
-    console.log("✅ Database seeded successfully");
+    await seedData(true);
+    console.log("✅ Database seeding completed");
   } catch (err) {
     console.error("❌ Database seeding failed:", err.message);
   }
+} else {
+  console.log("🔒 Production environment detected; startup seeding skipped.");
 }
 
 const app = express();

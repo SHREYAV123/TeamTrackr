@@ -7,11 +7,16 @@ import connectDB from "./config/db.js";
 
 dotenv.config();
 
-const seedData = async () => {
+const seedData = async (reset = false) => {
   try {
-    await connectDB();
-    await mongoose.connection.dropDatabase();
-    console.log("🗑️ Database dropped");
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB();
+    }
+
+    if (reset) {
+      await mongoose.connection.dropDatabase();
+      console.log("🗑️ Database dropped");
+    }
 
     const admin = await User.create({
       name: "Shreya Sahu",
@@ -47,24 +52,28 @@ const seedData = async () => {
       name: "Website Redesign",
       description: "Revamp the company website with a modern design and improved navigation.",
       members: [admin._id, member1._id, member2._id],
+      createdBy: admin._id,
     });
 
     const project2 = await Project.create({
       name: "Mobile App Development",
       description: "Build a cross-platform mobile application for iOS and Android.",
       members: [admin._id, member3._id, member1._id],
+      createdBy: admin._id,
     });
 
     const project3 = await Project.create({
       name: "Database Optimization",
       description: "Optimize the database schema and improve query performance.",
       members: [admin._id, member2._id],
+      createdBy: admin._id,
     });
 
     const project4 = await Project.create({
       name: "API Integration",
       description: "Integrate external services and payment workflows into the platform.",
       members: [admin._id, member3._id],
+      createdBy: admin._id,
     });
 
     console.log("📁 Projects created");
@@ -189,6 +198,7 @@ const seedData = async () => {
 
     console.log("✅ Tasks created");
     console.log("🎉 Dummy data inserted successfully!");
+    console.log("✅ Database seeded successfully");
     console.log("\n📋 Seeded Data Summary:");
     console.log("   Users: 4 (1 Admin, 3 Members)");
     console.log("   Projects: 4");
@@ -202,7 +212,8 @@ const seedData = async () => {
 export default seedData;
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  seedData()
+  const reset = process.argv.includes("--reset") || process.env.FORCE_SEED === "true";
+  seedData(reset)
     .then(() => {
       console.log("✅ Seeding completed successfully");
       process.exit(0);

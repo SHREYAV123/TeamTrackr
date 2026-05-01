@@ -6,6 +6,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const normalizeRole = (role) => {
+    if (typeof role !== "string") return "Member";
+    const trimmed = role.trim();
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+  };
+
   useEffect(() => {
     // Check if user is logged in on app start
     const token = localStorage.getItem("token");
@@ -13,7 +19,8 @@ export const AuthProvider = ({ children }) => {
 
     if (token && storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsed = JSON.parse(storedUser);
+        setUser({ ...parsed, role: normalizeRole(parsed.role) });
       } catch (error) {
         console.error("Error parsing stored user:", error);
         localStorage.removeItem("token");
@@ -25,9 +32,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData, token) => {
-    setUser(userData);
+    const normalizedUser = { ...userData, role: normalizeRole(userData.role) };
+    setUser(normalizedUser);
     localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("user", JSON.stringify(normalizedUser));
   };
 
   const logout = () => {
