@@ -103,14 +103,14 @@ export default function Projects() {
               placeholder="Project Name"
               value={formData.name}
               onChange={handleInputChange}
-              className="w-full border-2 border-gray-200 focus:border-blue-600 p-3 mb-4 rounded-lg focus:outline-none transition"
+              className="w-full border-2 border-gray-200 focus:border-blue-600 p-3 mb-4 text-black rounded-lg focus:outline-none transition"
             />
             <textarea
               name="description"
               placeholder="Project Description"
               value={formData.description}
               onChange={handleInputChange}
-              className="w-full border-2 border-gray-200 focus:border-blue-600 p-3 mb-4 rounded-lg focus:outline-none transition"
+              className="w-full border-2 text-black border-gray-200 focus:border-blue-600 p-3 mb-4 rounded-lg focus:outline-none transition"
               rows="3"
             />
             <div className="flex gap-3">
