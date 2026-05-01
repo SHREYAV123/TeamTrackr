@@ -6,30 +6,44 @@ import ProjectDetail from "../components/ProjectDetail";
 export default function Projects() {
   const { user } = useContext(AuthContext);
   const [projects, setProjects] = useState([]);
+  const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ name: "", description: "" });
+  const [formData, setFormData] = useState({ name: "", description: "", members: [] });
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [detailProject, setDetailProject] = useState(null);
 
   useEffect(() => {
     fetchProjects();
+    fetchUsers();
   }, []);
 
   const fetchProjects = async () => {
     try {
       const { data } = await API.get("/projects");
       setProjects(data);
-    } catch (err) {
-      console.error("Failed to fetch projects", err);
+    } catch (_) {
     } finally {
       setFetching(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const { data } = await API.get("/users");
+      setUsers(data);
+    } catch (_) {
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleMembersChange = (e) => {
+    const values = Array.from(e.target.selectedOptions).map((option) => option.value);
+    setFormData({ ...formData, members: values });
   };
 
   const handleCreateProject = async () => {
@@ -41,7 +55,7 @@ export default function Projects() {
     try {
       const { data } = await API.post("/projects", formData);
       setProjects([data, ...projects]);
-      setFormData({ name: "", description: "" });
+      setFormData({ name: "", description: "", members: [] });
       setShowForm(false);
       alert("✅ Project created successfully!");
     } catch (err) {
@@ -124,6 +138,28 @@ export default function Projects() {
               className="w-full border-2 text-black border-gray-200 focus:border-blue-600 p-3 mb-4 rounded-lg focus:outline-none transition"
               rows="3"
             />
+            <div className="mb-4">
+              <label className="block text-sm font-bold text-gray-900 mb-2">Project Members</label>
+              <select
+                name="members"
+                multiple
+                value={formData.members}
+                onChange={handleMembersChange}
+                className="w-full h-48 border-2 border-gray-200 focus:border-blue-600 p-3 mb-2 rounded-lg focus:outline-none transition bg-white text-gray-900 font-medium overflow-y-auto"
+                size={Math.min(8, Math.max(4, users.length))}
+              >
+                {users
+                  .filter((userItem) => userItem.role !== "Admin")
+                  .map((userItem) => (
+                    <option key={userItem._id} value={userItem._id}>
+                      {userItem.name} ({userItem.email})
+                    </option>
+                  ))}
+              </select>
+              <p className="text-xs text-gray-500">
+                Hold Ctrl/Cmd to select multiple members. The project creator is added automatically.
+              </p>
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={handleCreateProject}
@@ -135,7 +171,7 @@ export default function Projects() {
               <button
                 onClick={() => {
                   setShowForm(false);
-                  setFormData({ name: "", description: "" });
+                  setFormData({ name: "", description: "", members: [] });
                 }}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-lg font-medium transition"
               >

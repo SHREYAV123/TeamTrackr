@@ -5,17 +5,17 @@ import User from "../models/User.js";
 // Create a new project (Admin only)
 export const createProject = async (req, res) => {
   try {
-    console.log("[projectController] createProject called", {
-      user: req.user,
-      body: req.body,
-      authorization: req.headers.authorization,
-    });
+    const { name, description, members } = req.body;
+    const memberIds = Array.isArray(members) ? members.filter(Boolean) : [];
 
-    const { name, description } = req.body;
+    if (!memberIds.includes(req.user.id)) {
+      memberIds.unshift(req.user.id);
+    }
+
     const project = await Project.create({
       name,
       description,
-      members: [req.user.id], // creator is automatically a member
+      members: memberIds,
       createdBy: req.user.id,
     });
 
@@ -23,7 +23,6 @@ export const createProject = async (req, res) => {
 
     res.status(201).json(project);
   } catch (err) {
-    console.error("[projectController] createProject error", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -45,20 +44,10 @@ export const getProjects = async (req, res) => {
 // Delete a project and its tasks (Admin only)
 export const deleteProject = async (req, res) => {
   try {
-    console.log("[projectController] deleteProject called", {
-      user: req.user,
-      projectId: req.params.id,
-      authorization: req.headers.authorization,
-    });
-
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: "Project not found" });
 
     if (project.createdBy.toString() !== req.user.id) {
-      console.warn("[projectController] deleteProject denied", {
-        projectOwner: project.createdBy.toString(),
-        requestUser: req.user.id,
-      });
       return res.status(403).json({ message: "Only the project owner can delete this project" });
     }
 
@@ -67,7 +56,6 @@ export const deleteProject = async (req, res) => {
 
     res.json({ message: "Project deleted successfully" });
   } catch (err) {
-    console.error("[projectController] deleteProject error", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -82,7 +70,8 @@ export const addMember = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (!project.members.includes(userId)) {
+    const existingIds = project.members.map((member) => member.toString());
+    if (!existingIds.includes(userId)) {
       project.members.push(userId);
       await project.save();
     }

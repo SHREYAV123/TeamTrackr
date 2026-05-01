@@ -51,8 +51,7 @@ export default function Tasks() {
       } else if (data.length > 0) {
         setSelectedProject(data[0]._id);
       }
-    } catch (err) {
-      console.error("Failed to fetch projects", err);
+    } catch (_) {
     } finally {
       setFetching(false);
     }
@@ -62,8 +61,7 @@ export default function Tasks() {
     try {
       const { data } = await API.get(`/tasks/${projectId}`);
       setTasks(data);
-    } catch (err) {
-      console.error("Failed to fetch tasks", err);
+    } catch (_) {
     }
   };
 

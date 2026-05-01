@@ -41,8 +41,7 @@ export default function Dashboard() {
           pendingTasks += tasks.filter((t) => t.status === "Pending").length;
           inProgressTasks += tasks.filter((t) => t.status === "In Progress").length;
           allTasks.push(...tasks);
-        } catch (err) {
-          console.error(`Failed to fetch tasks for project ${project._id}`);
+        } catch (_) {
         }
       }
 
@@ -54,8 +53,7 @@ export default function Dashboard() {
         pendingTasks,
         inProgressTasks,
       });
-    } catch (err) {
-      console.error("Failed to fetch dashboard data", err);
+    } catch (_) {
     } finally {
       setLoading(false);
     }

@@ -15,7 +15,6 @@ const seedData = async (reset = false) => {
 
     if (reset) {
       await mongoose.connection.dropDatabase();
-      console.log("🗑️ Database dropped");
     }
 
     const admin = await User.create({
@@ -46,7 +45,6 @@ const seedData = async (reset = false) => {
       role: "Member",
     });
 
-    console.log("👤 Users created");
 
     const project1 = await Project.create({
       name: "Website Redesign",
@@ -76,7 +74,6 @@ const seedData = async (reset = false) => {
       createdBy: admin._id,
     });
 
-    console.log("📁 Projects created");
 
     await Task.create([
       {
@@ -196,15 +193,7 @@ const seedData = async (reset = false) => {
       },
     ]);
 
-    console.log("✅ Tasks created");
-    console.log("🎉 Dummy data inserted successfully!");
-    console.log("✅ Database seeded successfully");
-    console.log("\n📋 Seeded Data Summary:");
-    console.log("   Users: 4 (1 Admin, 3 Members)");
-    console.log("   Projects: 4");
-    console.log("   Tasks: 14");
   } catch (err) {
-    console.error("❌ Error seeding data:", err.message);
     throw err;
   }
 };
@@ -215,11 +204,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const reset = process.argv.includes("--reset") || process.env.FORCE_SEED === "true";
   seedData(reset)
     .then(() => {
-      console.log("✅ Seeding completed successfully");
       process.exit(0);
     })
-    .catch((err) => {
-      console.error("❌ Seeding failed:", err);
+    .catch(() => {
       process.exit(1);
     });
 }

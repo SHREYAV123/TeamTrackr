@@ -22,8 +22,7 @@ export default function ProjectDetail({ project, onClose }) {
       try {
         const { data } = await API.get(`/tasks/${project._id}`);
         setTasks(data);
-      } catch (err) {
-        console.error("Failed to fetch tasks", err);
+      } catch (_) {
       } finally {
         setLoading(false);
       }

@@ -21,8 +21,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(storedUser);
         setUser({ ...parsed, role: normalizeRole(parsed.role) });
-      } catch (error) {
-        console.error("Error parsing stored user:", error);
+      } catch (_) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
