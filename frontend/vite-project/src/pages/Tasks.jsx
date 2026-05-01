@@ -4,6 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 
 export default function Tasks() {
   const { user } = useContext(AuthContext);
+  const isAdmin = user?.role === "Admin";
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState("");
@@ -14,12 +15,22 @@ export default function Tasks() {
     title: "",
     description: "",
     dueDate: "",
+    assignedTo: "",
   });
 
   // Fetch projects
   useEffect(() => {
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    if (!selectedProject || !isAdmin) return;
+    const project = projects.find((p) => p._id === selectedProject);
+    const firstMember = project?.members?.find((m) => m.role === "Member");
+    if (firstMember) {
+      setFormData((prev) => ({ ...prev, assignedTo: firstMember._id || "" }));
+    }
+  }, [selectedProject, projects, isAdmin]);
 
   // Fetch tasks when project is selected
   useEffect(() => {
@@ -62,15 +73,26 @@ export default function Tasks() {
       return;
     }
 
+    const project = projects.find((p) => p._id === selectedProject);
+    const projectMembers = project?.members?.filter((m) => m.role === "Member") || [];
+    if (projectMembers.length > 0 && !formData.assignedTo) {
+      alert("Please assign the task to a project member.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data } = await API.post("/tasks", {
-        ...formData,
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        dueDate: formData.dueDate,
         projectId: selectedProject,
-        assignedTo: "",
-      });
+      };
+      if (formData.assignedTo) payload.assignedTo = formData.assignedTo;
+
+      const { data } = await API.post("/tasks", payload);
       setTasks([data, ...tasks]);
-      setFormData({ title: "", description: "", dueDate: "" });
+      setFormData({ title: "", description: "", dueDate: "", assignedTo: "" });
       setShowForm(false);
       alert("✅ Task created successfully!");
     } catch (err) {
@@ -178,12 +200,18 @@ export default function Tasks() {
             <h1 className="text-4xl font-bold text-gray-900">✅ Tasks</h1>
             <p className="text-gray-600 mt-2">Track and manage your work items</p>
           </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-emerald-800 font-medium transition shadow-lg hover:shadow-xl"
-          >
-            + New Task
-          </button>
+          {isAdmin ? (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-emerald-800 font-medium transition shadow-lg hover:shadow-xl"
+            >
+              + New Task
+            </button>
+          ) : (
+            <p className="text-sm text-gray-500">
+              Members only see tasks assigned to them. Update status when work is complete.
+            </p>
+          )}
         </div>
 
         {/* Project Selector */}
@@ -192,7 +220,7 @@ export default function Tasks() {
           <select
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
-            className="w-full border-2 border-gray-200 focus:border-blue-600 p-3 rounded-lg focus:outline-none transition bg-white"
+            className="w-full border-2 border-gray-200 focus:border-blue-600 p-3 rounded-lg focus:outline-none transition bg-white text-gray-900 font-medium"
           >
             <option value="">-- No project selected --</option>
             {projects.map((p) => (
@@ -204,7 +232,7 @@ export default function Tasks() {
         </div>
 
         {/* Create Task Form */}
-        {showForm && selectedProject && (
+        {isAdmin && showForm && selectedProject && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8 border-l-4 border-emerald-600">
             <h3 className="text-xl font-bold mb-4 text-gray-900">Create New Task</h3>
             <input
@@ -230,6 +258,23 @@ export default function Tasks() {
               onChange={handleInputChange}
               className="w-full border-2 border-gray-200 focus:border-emerald-600 p-3 mb-4 rounded-lg focus:outline-none transition"
             />
+            <label className="block text-sm font-bold text-gray-900 mb-2">Assign to Member</label>
+            <select
+              name="assignedTo"
+              value={formData.assignedTo}
+              onChange={handleInputChange}
+              className="w-full border-2 border-gray-200 focus:border-emerald-600 p-3 mb-4 rounded-lg focus:outline-none transition bg-white text-gray-900 font-medium"
+            >
+              <option value="">Select a member</option>
+              {projects
+                .find((p) => p._id === selectedProject)
+                ?.members?.filter((member) => member.role === "Member")
+                ?.map((member) => (
+                  <option key={member._id} value={member._id}>
+                    {member.name} ({member.email})
+                  </option>
+                ))}
+            </select>
             <div className="flex gap-3">
               <button
                 onClick={handleCreateTask}
@@ -241,7 +286,7 @@ export default function Tasks() {
               <button
                 onClick={() => {
                   setShowForm(false);
-                  setFormData({ title: "", description: "", dueDate: "" });
+                  setFormData({ title: "", description: "", dueDate: "", assignedTo: "" });
                 }}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-lg font-medium transition"
               >
@@ -301,6 +346,21 @@ export default function Tasks() {
                                 <span className="text-gray-600 text-xs font-semibold">📅 DUE DATE</span>
                                 <p className="font-medium text-gray-900 mt-1">
                                   {new Date(t.dueDate).toLocaleDateString("en-US", {
+                                    weekday: "short",
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Completed At */}
+                            {t.status === "Completed" && t.completedAt && (
+                              <div className="bg-white/50 rounded p-3">
+                                <span className="text-gray-600 text-xs font-semibold">✅ COMPLETED AT</span>
+                                <p className="font-medium text-gray-900 mt-1">
+                                  {new Date(t.completedAt).toLocaleDateString("en-US", {
                                     weekday: "short",
                                     year: "numeric",
                                     month: "short",

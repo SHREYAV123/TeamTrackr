@@ -4,14 +4,18 @@ import { authorize } from "../middleware/roleMiddleware.js";
 import {
   createTask,
   getTasks,
+  getMyTasks,
   updateTaskStatus,
   deleteTask,
 } from "../controllers/taskController.js";
 
 const router = express.Router();
 
-// Create a task (Admin & Member)
-router.post("/", protect, authorize(["Admin", "Member"]), createTask);
+// Create a task (Admin only)
+router.post("/", protect, authorize(["Admin"]), createTask);
+
+// Get tasks assigned to current user (Admin & Member)
+router.get("/my/tasks", protect, authorize(["Admin", "Member"]), getMyTasks);
 
 // Get tasks for a project (Admin & Member)
 router.get("/:projectId", protect, getTasks);

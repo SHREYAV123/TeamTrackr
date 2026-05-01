@@ -74,17 +74,23 @@ export default function Projects() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">📁 Projects</h1>
             <p className="text-gray-600 mt-2">Manage and organize your projects</p>
           </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 font-medium transition shadow-lg hover:shadow-xl"
-          >
-            + New Project
-          </button>
+          {user?.role === "Admin" ? (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 font-medium transition shadow-lg hover:shadow-xl"
+            >
+              + New Project
+            </button>
+          ) : (
+            <div className="rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600 border border-slate-200">
+              Project creation is available only for Admin users.
+            </div>
+          )}
         </div>
 
         {/* Create Project Form */}
@@ -149,7 +155,7 @@ export default function Projects() {
                   </div>
 
                   {/* Project Title */}
-                  <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">{p.name}</h3>
+                  <h3 className="font-bold text-lg text-gray-900 mb-2 truncate">{p.name}</h3>
 
                   {/* Project Description */}
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">{p.description || "No description provided"}</p>

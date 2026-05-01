@@ -2,12 +2,24 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
+import seedData from "./seed.js";
 import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 
 dotenv.config();
-connectDB();
+await connectDB();
+
+// Auto-seed database on server start (only in development)
+if (process.env.NODE_ENV !== "production") {
+  console.log("🌱 Seeding database...");
+  try {
+    await seedData();
+    console.log("✅ Database seeded successfully");
+  } catch (err) {
+    console.error("❌ Database seeding failed:", err.message);
+  }
+}
 
 const app = express();
 app.use(cors());

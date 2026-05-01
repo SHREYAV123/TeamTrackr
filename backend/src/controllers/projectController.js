@@ -1,7 +1,7 @@
 import Project from "../models/Project.js";
 import User from "../models/User.js";
 
-// Create a new project (Admin only)
+// Create a new project (Admin and Member can create)
 export const createProject = async (req, res) => {
   try {
     const { name, description } = req.body;
